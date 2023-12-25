@@ -5,15 +5,15 @@ function part1(input) {
   let i = 0;
   for (const pattern of patterns) {
     const colReflection = findReflectionCol(pattern);
-    if (colReflection !== null) {
-      result += (colReflection + 1);
+    if (colReflection.length > 0) {
+      result += (colReflection[0] + 1);
     }
     const rowReflection = findReflectionRow(pattern);
-    if (rowReflection !== null) {
-      result += 100 * (rowReflection + 1);
+    if (rowReflection.length > 0) {
+      result += 100 * (rowReflection[0] + 1);
     }
 
-    if (colReflection === null && rowReflection === null) console.log(i);
+    if (colReflection.length === 0 && rowReflection.length === 0) console.log(i);
     i++;
   }
 
@@ -45,26 +45,28 @@ function getValueForPattern(pattern, i) {
 
   for (let row = 0; row < pattern.length; row++) {
     for (let col = 0; col < pattern[row].length; col++) {
-      const original = pattern[row][col];
-      const opposite = toOpposite(pattern[row][col]);
-      pattern[row][col] = opposite;
-
-      if (original == opposite) console.log(original);
+      pattern[row][col] = toOpposite(pattern[row][col]);;
 
       const newReflection = getReflection(pattern);
-      if (newReflection[0] !== null && newReflection[0] !== originalReflection[0]) {
-        return newReflection[0] + 1;
-      }
-      if (newReflection[1] !== null && newReflection[1] !== originalReflection[1]) {
-        return 100 * (newReflection[1] + 1);
-      }
+      const chosen = chooseReflection(originalReflection, newReflection);
+      if (chosen !== null) return chosen;
 
-      pattern[row][col] = original;
+      pattern[row][col] = toOpposite(pattern[row][col]);;
     }
   }
 
-  if (originalReflection[0] !== null) return originalReflection[0] + 1;
-  if (originalReflection[1] !== null) return 100 * (originalReflection[1] + 1);
+  return null;
+}
+
+function chooseReflection(original, modified) {
+  for (const reflection of modified[0]) {
+    if (reflection !== original[0][0]) return reflection + 1;
+  }
+  for (const reflection of modified[1]) {
+    if (reflection !== original[1][0]) return 100 * (reflection + 1);
+  }
+
+  return null;
 }
 
 function toOpposite(c) {
@@ -91,19 +93,21 @@ function getPatterns(input) {
 }
 
 function findReflectionCol(pattern) {
+  const reflections = [];
   for (let col = 0; col < pattern[0].length - 1; col++) {
-    if (isReflectionAcrossCol(pattern, col)) return col;
+    if (isReflectionAcrossCol(pattern, col)) reflections.push(col);
   }
 
-  return null;
+  return reflections;
 }
 
 function findReflectionRow(pattern) {
+  const reflections = [];
   for (let row = 0; row < pattern.length - 1; row++) {
-    if (isReflectionAcrossRow(pattern, row)) return row;
+    if (isReflectionAcrossRow(pattern, row)) reflections.push(row);
   }
 
-  return null;
+  return reflections;
 }
 
 function isReflectionAcrossCol(pattern, acrossCol) {

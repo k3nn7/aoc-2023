@@ -8,6 +8,6 @@ describe('day12', () => {
   });
 
   test('part2', () => {
-    expect(part2(input)).toBeUndefined();
+    expect(part2(input)).toBe(145);
   });
 });
