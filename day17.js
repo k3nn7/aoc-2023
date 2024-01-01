@@ -1,40 +1,40 @@
-let visited = {};
-let memo = {};
-let depth = 0;
-
 function part1(input) {
   const board = parseInput(input);
 
-  visited = {}; 
-  memo ={};
-  const min1 = findMin(board, 0, 0, 'down', 1);
-  visited = {}; 
-  memo ={};
-  const min2 = findMin(board, 0, 0, 'right', 1);
-
-  return [min1, min2];
+  return findMin(board);
 }
 
 function part2(input) {
 }
 
-function findMin2(board, direction) {
-  const distTo = {};
+function findMin(board) {
   const pq = new MinPQ();
-  const details = {};
+  const visited = {};
 
-  for (let row = 0; row < board.length; row++) {
-    for (let col = 0; col < board[row].length; col++) {
-      const key = `${row},${col}`;
-      distTo[key] = Number.MAX_SAFE_INTEGER;
+  pq.add({direction: 'right', moves: 0, row: 0, col: 0, cost: 0}, 0);
+  visited['0,0,1'] = true;
+
+  let min = Number.MAX_SAFE_INTEGER;
+  while (!pq.empty()) {
+    const v = pq.removeMin();
+    if (v.row === board.length-1 && v.col === board[0].length-1) {
+      if (v.cost < min) min = v.cost;
+    }
+
+    const directions = getPossibleDirections(v.direction, v.moves, v.row, v.col, board);
+    for (const direction of directions) {
+      const [newRow, newCol] = directionToCoord(v.row, v.col, direction);
+      const newMoves = direction === v.direction ? v.moves+1 : 1;
+      const newCost = v.cost + board[newRow][newCol];
+      const key = `${newRow},${newCol},${newMoves}`;
+      if (!(key in visited)) {
+        pq.add({direction, moves: newMoves, row: newRow, col: newCol, cost: newCost}, newCost);
+        visited[key] = true;
+      }
     }
   }
-  distTo['0,0'] = 0;
-  pq.add('0.0', 0);
-  details['0.0'] = {direction, moves: 1, row: 0, col: 0, key: '0.0'};
-  while (!pq.empty()) {
-    relax(board, details[pq.removeMin()];
-  }
+
+  return min;
 }
 
 function relax(board, v, dist, details) {
@@ -46,34 +46,34 @@ function relax(board, v, dist, details) {
 }
 
 function getPossibleDirections(direction, moves, row, col, board) {
-  let moves = [];
+  let result = [];
   switch (direction) {
     case 'up':
-      if (moves < 3 && row > 0) moves.push('up');
-      if (col > 0) moves.push('left');
-      if (col < board[row].length - 1) moves.push('right');
+      if (moves < 3 && row > 0) result.push('up');
+      if (col > 0) result.push('left');
+      if (col < board[row].length - 1) result.push('right');
       break;
 
     case 'down':
-      if (moves < 3 && row < board.length - 1) moves.push('down');
-      if (col > 0) moves.push('left');
-      if (col < board[row].length - 1) moves.push('right');
+      if (moves < 3 && row < board.length - 1) result.push('down');
+      if (col > 0) result.push('left');
+      if (col < board[row].length - 1) result.push('right');
       break;
 
     case 'left':
-      if (moves < 3 && col > 0) moves.push('left');
-      if (row > 0) moves.push('up');
-      if (row < board.length - 1) moves.push('down');
+      if (moves < 3 && col > 0) result.push('left');
+      if (row > 0) result.push('up');
+      if (row < board.length - 1) result.push('down');
       break;
 
     case 'right':
-      if (moves < 3 && col < board[row].length - 1) moves.push('right');
-      if (row > 0) moves.push('up');
-      if (row < board.length - 1) moves.push('down');
+      if (moves < 3 && col < board[row].length - 1) result.push('right');
+      if (row > 0) result.push('up');
+      if (row < board.length - 1) result.push('down');
       break;
   }
 
-  return moves;
+  return result;
 }
 
 function directionToCoord(row, col, direction) {
@@ -124,9 +124,12 @@ class MinPQ {
 
   removeMin() {
     const result = this.arr[1].key;
-    this.arr[1] = this.arr.pop();
-    const node = this.arr[1];
-    this.sink(1);
+    if (this.arr.length > 2) {
+      this.arr[1] = this.arr.pop();
+      this.sink(1);
+    } else {
+      this.arr.pop();
+    }
 
     return result;
   }
@@ -136,7 +139,7 @@ class MinPQ {
   }
 
   empty() {
-    return this.arr.length > 1;
+    return this.arr.length === 1;
   }
 
   swim(n) {

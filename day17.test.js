@@ -15,9 +15,9 @@ describe('day17', () => {
 2546548887735
 4322674655533`;
 
-  const input2 = `123
-123
-123`;
+  const input2 = `14111
+11141
+44441`;
 
   test('heap', () => {
     const h = new MinPQ();
@@ -48,9 +48,9 @@ describe('day17', () => {
   test('part1', () => {
     expect(part1(input)).toBe(102);
     //
-    //123
-    //123
-    //123
+    //1234
+    //1234
+    //1234
     expect(part1(input2)).toBe(102);
   });
 
