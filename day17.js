@@ -5,6 +5,9 @@ function part1(input) {
 }
 
 function part2(input) {
+  const board = parseInput(input);
+  
+  return findMin2(board);
 }
 
 function findMin(board) {
@@ -12,11 +15,12 @@ function findMin(board) {
   const visited = {};
 
   pq.add({direction: 'right', moves: 0, row: 0, col: 0, cost: 0}, 0);
-  visited['0,0,1'] = true;
+  visited['0,0,1,right'] = true;
 
   let min = Number.MAX_SAFE_INTEGER;
   while (!pq.empty()) {
     const v = pq.removeMin();
+
     if (v.row === board.length-1 && v.col === board[0].length-1) {
       if (v.cost < min) min = v.cost;
     }
@@ -26,7 +30,7 @@ function findMin(board) {
       const [newRow, newCol] = directionToCoord(v.row, v.col, direction);
       const newMoves = direction === v.direction ? v.moves+1 : 1;
       const newCost = v.cost + board[newRow][newCol];
-      const key = `${newRow},${newCol},${newMoves}`;
+      const key = `${newRow},${newCol},${newMoves},${direction}`;
       if (!(key in visited)) {
         pq.add({direction, moves: newMoves, row: newRow, col: newCol, cost: newCost}, newCost);
         visited[key] = true;
@@ -37,12 +41,35 @@ function findMin(board) {
   return min;
 }
 
-function relax(board, v, dist, details) {
-  const directions = getPossibleDirections(v.direction, v.moves, v.row, v.col, board);
-  for (const direction of directions) {
-    const [newRow, newCol] = directionToCoord(v.row, v.col, direction);
-    const key = `${newRow},${newCol}`;
+function findMin2(board) {
+  const pq = new MinPQ();
+  const visited = {};
+
+  pq.add({direction: 'right', moves: 0, row: 0, col: 0, cost: 0}, 0);
+  pq.add({direction: 'down', moves: 0, row: 0, col: 0, cost: 0}, 0);
+
+  let min = Number.MAX_SAFE_INTEGER;
+  while (!pq.empty()) {
+    const v = pq.removeMin();
+    const key = `${v.row},${v.col},${v.moves},${v.direction}`;
+    if (key in visited) continue;
+    visited[key] = true;
+
+    if (v.row === board.length-1 && v.col === board[0].length-1 && v.moves >= 4) {
+      return v.cost;
+      //if (v.cost < min) min = v.cost;
+    }
+
+    const directions = getPossibleDirections2(v.direction, v.moves, v.row, v.col, board);
+    for (const direction of directions) {
+      const [newRow, newCol] = directionToCoord(v.row, v.col, direction);
+      const newMoves = direction === v.direction ? v.moves+1 : 1;
+      const newCost = v.cost + board[newRow][newCol];
+      pq.add({direction, moves: newMoves, row: newRow, col: newCol, cost: newCost}, newCost);
+    }
   }
+
+  return min;
 }
 
 function getPossibleDirections(direction, moves, row, col, board) {
@@ -76,6 +103,39 @@ function getPossibleDirections(direction, moves, row, col, board) {
   return result;
 }
 
+function getPossibleDirections2(direction, moves, row, col, board) {
+  let result = [];
+  const max = 10;
+  const min = 4;
+  switch (direction) {
+    case 'up':
+      if (moves < max && row > 0) result.push('up');
+      if (moves >= min && col > 0) result.push('left');
+      if (moves >= min && col < board[row].length - 1) result.push('right');
+      break;
+
+    case 'down':
+      if (moves < max && row < board.length - 1) result.push('down');
+      if (moves >= min && col > 0) result.push('left');
+      if (moves >= min && col < board[row].length - 1) result.push('right');
+      break;
+
+    case 'left':
+      if (moves < max && col > 0) result.push('left');
+      if (moves >= min && row > 0) result.push('up');
+      if (moves >= min && row < board.length - 1) result.push('down');
+      break;
+
+    case 'right':
+      if (moves < max && col < board[row].length - 1) result.push('right');
+      if (moves >= min && row > 0) result.push('up');
+      if (moves >= min && row < board.length - 1) result.push('down');
+      break;
+  }
+
+  return result;
+}
+
 function directionToCoord(row, col, direction) {
   switch (direction) {
     case 'up':
@@ -92,8 +152,8 @@ function directionToCoord(row, col, direction) {
 function parseInput(input) {
   return input
     .split('\n')
-    .filter(l => l.length > 0)
-    .map(l => l.split('').map(n => parseInt(n)));
+    .map(l => l.split('').map(n => parseInt(n)))
+    .filter(l => l.length > 0);
 }
 
 class MinPQ {
@@ -171,12 +231,14 @@ class MinPQ {
         this.arr[i].i = i;
         this.arr[leftChild] = tmp;
         this.arr[leftChild].i = leftChild;
+        i = i*2;
       } else if (rightPriority < priority) {
         const tmp = this.arr[i];
         this.arr[i] = this.arr[rightChild];
         this.arr[i].i = i;
         this.arr[rightChild] = tmp;
         this.arr[rightChild].i = rightChild;
+        i = i*2 + 1;
       } else {
         return;
       }
