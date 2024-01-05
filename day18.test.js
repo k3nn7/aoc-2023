@@ -14,14 +14,13 @@ U 2 (#caa171)
 R 2 (#7807d2)
 U 3 (#a77fa3)
 L 2 (#015232)
-U 2 (#7a21e3)
-`;
+U 2 (#7a21e3)`;
 
   test('part1', () => {
     expect(part1(input)).toBe(62);
   });
 
   test('part2', () => {
-    expect(part2(input)).toBeUndefined();
+    expect(part2(input)).toBe(952408144115);
   });
 });

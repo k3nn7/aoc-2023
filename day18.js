@@ -7,10 +7,12 @@ function part1(input) {
 
 function part2(input) {
   const parsed = parse2(input);
-  const [trench, boundaries] = build(parsed);
-  console.log('built');
+  const coords = build2(parsed);
+  const boundaryPoints = coundBoundaryPoints(coords);
+  const area = calculateArea(coords);
+  const interiorPoints = area - boundaryPoints / 2 + 1;
 
-  return getVolume(trench, boundaries);
+  return boundaryPoints + interiorPoints;  
 }
 
 function parse(input) {
@@ -82,6 +84,53 @@ function build(commands) {
   result['0,0'] = getSegment(commands[commands.length-1][0], commands[0][0]);
 
   return [result, [minRow, maxRow, minCol, maxCol]];
+}
+
+function build2(commands) {
+  const coords = [[0, 0]];
+  for (const command of commands) {
+    const [direction, dist] = command;
+    const previousCoord = coords[coords.length - 1];
+    const newCoord = [previousCoord[0], previousCoord[1]];
+    switch (direction) {
+      case 'U':
+        newCoord[0] -= dist;
+        break;
+      case 'D':
+        newCoord[0] += dist;
+        break;
+      case 'L':
+        newCoord[1] -= dist;
+        break;
+      case 'R':
+        newCoord[1] += dist;
+        break;
+    }
+    coords.push(newCoord);
+  }
+
+  return coords;
+}
+
+function coundBoundaryPoints(coords) {
+  let sum = 0;
+  for (let i = 1; i < coords.length; i++) {
+    sum += Math.abs(coords[i][0] - coords[i-1][0]) 
+      + Math.abs(coords[i][1] - coords[i-1][1]);
+  }
+
+  return sum;
+}
+
+function calculateArea(coords) {
+  let area = 0;
+  for (let i = 1; i < coords.length; i++) {
+    const item = (coords[i-1][1] * coords[i][0])
+      - (coords[i][1] * coords[i-1][0]);
+    area += item;
+  }
+
+  return area / 2;
 }
 
 function move([row,col], direction) {
